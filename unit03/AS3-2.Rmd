@@ -128,6 +128,7 @@ __§ 2.1__ Around what year did Coca-Cola has its highest stock price in this ti
 which.max(CocaCola$StockPrice)
 CocaCola$Date[37]
 CocaCola$Date[which.min(CocaCola$StockPrice)]
+
 #
 #
 ```
