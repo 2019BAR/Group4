@@ -97,13 +97,13 @@ mean(IBM$StockPrice)
 
 __§ 1.5__ What is the minimum stock price of General Electric (GE) over this time period?
 ```{r}
-which.min(GE$StockPrice)
+min(GE$StockPrice)
 #
 ```
 
 __§ 1.6__ What is the maximum stock price of Coca-Cola over this time period?
 ```{r}
-which.max(CocaCola$StockPrice)
+max(CocaCola$StockPrice)
 #
 ```
 
@@ -125,6 +125,10 @@ sd(ProcterGamble$StockPrice)
 
 __§ 2.1__ Around what year did Coca-Cola has its highest stock price in this time period? Around what year did Coca-Cola has its lowest stock price in this time period?
 ```{r}
+which.max(CocaCola$StockPrice)
+CocaCola$Date[37]
+CocaCola$Date[which.min(CocaCola$StockPrice)]
+
 #
 #
 ```
