@@ -34,12 +34,27 @@ pacman::p_load(dplyr)
 + `data/ProcterGambleStock.csv`
 + `data/CocaColaStock.csv`
 + `data/BoeingStock.csv` 
+```{r}
+IBM = read.csv("data/IBMStock.csv", stringsAsFactors=F)
+GE  = read.csv("data/GEStock.csv", stringsAsFactors=F)
+ProcterGamble = read.csv("data/ProcterGambleStock.csv", stringsAsFactors=F)
+CocaCola = read.csv("data/CocaColaStock.csv", stringsAsFactors=F)
+Boeing = read.csv("data/BoeingStock.csv", stringsAsFactors=F)
+Sys.setlocale('LC_ALL','C') #更改R預設語系
+```
 
 分別存入資料框`IBM`、`GE`、`ProcterGamble`、`CocaCola`和`Boeing`，
 每個資料框都有兩個變量，描述如下：
 
 + `Date`：日期
 + `StockPrice`：給定月份公司的平均股價
+```{r}
+IBM
+GE
+ProcterGamble
+CocaCola
+Boeing
+```
 
 在這個案例，我們將看看這些公司的股票動態如何隨著時間的推移而發生變化。
 
@@ -49,50 +64,58 @@ pacman::p_load(dplyr)
 
 __§ 1.1__ Our five datasets all have the same number of observations. How many observations are there in each data set?
 ```{r}
-#
-#
+#用nrow顯示資料有幾列
+nrow(IBM) 
+nrow(GE)
+nrow(ProcterGamble)
+nrow(CocaCola)
+nrow(Boeing)
 ```
 
 
 __§ 1.2__ What is the earliest year in our datasets?
 ```{r}
-#
-#
+IBM$Date = as.POSIXct(IBM$Date, format = "%m/%d/%y")
+GE$Date = as.POSIXct(GE$Date, format = "%m/%d/%y")
+ProcterGamble$Date = as.POSIXct(ProcterGamble$Date, format = "%m/%d/%y")
+CocaCola$Date =  as.POSIXct(CocaCola$Date, format = "%m/%d/%y")
+Boeing$Date =  as.POSIXct(Boeing$Date, format = "%m/%d/%y")
+IBM$Date[1]
 ```
 
 __§ 1.3__ What is the latest year in our datasets?
 ```{r}
-#
+IBM$Date[480]
 #
 ```
 
 __§ 1.4__ What is the mean stock price of IBM over this time period?
 ```{r}
-#
+mean(IBM$StockPrice)
 #
 ```
 
 __§ 1.5__ What is the minimum stock price of General Electric (GE) over this time period?
 ```{r}
-#
+which.min(GE$StockPrice)
 #
 ```
 
 __§ 1.6__ What is the maximum stock price of Coca-Cola over this time period?
 ```{r}
-#
+which.max(CocaCola$StockPrice)
 #
 ```
 
 __§ 1.7__ What is the median stock price of Boeing over this time period?
 ```{r}
-#
+median(Boeing$StockPrice)
 #
 ```
 
 __§ 1.8__ What is the standard deviation of the stock price of Procter & Gamble over this time period?
 ```{r}
-#
+sd(ProcterGamble$StockPrice)
 #
 ```
 
@@ -109,7 +132,7 @@ __§ 2.1__ Around what year did Coca-Cola has its highest stock price in this ti
 
 __§ 2.2__ In March of 2000, the technology bubble burst, and a stock market crash occurred. According to this plot, which company's stock dropped more?
 ```{r}
-#
+
 #
 ```
 
