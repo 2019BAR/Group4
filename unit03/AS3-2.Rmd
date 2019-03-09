@@ -123,10 +123,10 @@ sd(ProcterGamble$StockPrice)
 
 ###  Section-2 Visualizing Stock Dynamics
 
-__§ 2.1__ Around what year did Coca-Cola has its highest stock price in this time period? Around what year did Coca-Cola has its lowest stock price in this time period?
+__§ 2.1__ Around what year did Coca-Cola has its highest stock price in this time period? Around what year did Coca-Cola has its lowest stock price in this time period? 
+Ans:highest price year: 1973,lowest price year: 1980
 ```{r}
-which.max(CocaCola$StockPrice)
-CocaCola$Date[37]
+CocaCola$Date[which.max(CocaCola$StockPrice)]
 CocaCola$Date[which.min(CocaCola$StockPrice)]
 
 #
@@ -178,6 +178,7 @@ ProcterGamble$StockPrice[168]-ProcterGamble$StockPrice[157]
 
 (b) In the time period shown in the plot, which stock generally has lower values?
 ```{r}
+
 #
 #
 ```
