@@ -300,7 +300,7 @@ plot(tapply(CocaCola$StockPrice, months(CocaCola$Date), mean),xlab = "month",yla
 plot(tapply(GE$StockPrice, months(GE$Date), mean),xlab = "month",ylab = "stock price")
 plot(tapply(IBM$StockPrice, months(IBM$Date), mean),xlab = "month",ylab = "stock price")
 plot(tapply(ProcterGamble$StockPrice, months(ProcterGamble$Date), mean),xlab = "month",ylab = "stock price")
-#12月的股價皆較1月低。 
+#12月的股價皆較1月低。
 ```
 
 <br><br><br>
