@@ -266,20 +266,29 @@ lines(Boeing$Date[409:432], Boeing$StockPrice[409:432], col="Yellow")
 
 __§ 4.1__ For IBM, compare the monthly averages to the overall average stock price. In which months has IBM historically had a higher stock price (on average)? Select all that apply.
 ```{r}
-#
-#
+#比較IBM單月平均股價與總平均股價，哪個比較高
+tapply(IBM$StockPrice,months(IBM$Date),mean) %>%sort(decreasing = TRUE)>mean(IBM$StockPrice)
+tapply(IBM$StockPrice,months(IBM$Date),mean) %>%sort(decreasing = TRUE)
+#February,March,April,May,January的平均股價皆大於總平均股價，而February的平均股價是12個月裡最高的
 ```
 
 __§ 4.2__ General Electric and Coca-Cola both have their highest average stock price in the same month. Which month is this?
 ```{r}
 #
-#
+tapply(GE$StockPrice,months(GE$Date),mean) %>%sort(decreasing = TRUE)
+tapply(CocaCola$StockPrice,months(CocaCola$Date),mean) %>%sort(decreasing = TRUE)
+#從表上顯示，四月皆為他們平均股價最高的月份
 ```
 
 __§ 4.3__ For the months of December and January, every company's average stock is higher in one month and lower in the other. In which month are the stock prices lower?
 ```{r}
-#
-#
+#每個公司的股價在1月及12月哪個月份的股價較低
+plot(tapply(Boeing$StockPrice, months(Boeing$Date), mean),xlab = "month",ylab = "stock price")
+plot(tapply(CocaCola$StockPrice, months(CocaCola$Date), mean),xlab = "month",ylab = "stock price")
+plot(tapply(GE$StockPrice, months(GE$Date), mean),xlab = "month",ylab = "stock price")
+plot(tapply(IBM$StockPrice, months(IBM$Date), mean),xlab = "month",ylab = "stock price")
+plot(tapply(ProcterGamble$StockPrice, months(ProcterGamble$Date), mean),xlab = "month",ylab = "stock price")
+#12月的股價皆較1月低。
 ```
 
 <br><br><br>
