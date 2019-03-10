@@ -9,7 +9,6 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="author" content="第 0 組" />
 
 
 <title>AS3-3: 美國的人口統計和就業資料</title>
@@ -118,6 +117,9 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
 }
@@ -146,12 +148,12 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">AS3-3: 美國的人口統計和就業資料</h1>
-<h4 class="author"><em>第 0 組</em></h4>
-<h4 class="date"><em>2019-03-05 22:01:34</em></h4>
+<h4 class="date"><em>2019-03-10 17:46:36</em></h4>
 
 </div>
 
 
+<p>[第四組] <code>M074020010 陳韻卉</code> <code>M074020036 張哲瑋</code> <code>M074020043 巢正修</code> <code>B046060005陳雅靜</code> <code>B046060016 戴婉錡</code> <code>B046060037   陳柏愷</code></p>
 <hr>
 <p>就業統計數據是政策制定者用來衡量經濟整體實力的最重要指標之一。在美國，政府使用現有人口調查（CPS）衡量失業率，該調查每月收集來自各種美國人的人口統計和就業信息。在本練習中，我們將使用講座中審查的主題以及一些使用2013年9月版的，具有全國代表性的數據集。數據集中的觀察結果代表2013年9月CPS中實際完成調查的人員，完整數據集有385個欄位，但在本練習中，我們將使用數據集CPSData.csv版本，它具有以下欄位：</p>
 <ul>
@@ -175,31 +177,55 @@ $(document).ready(function () {
 <div id="section-1-loading-and-summarizing-the-dataset" class="section level3">
 <h3>Section-1 Loading and Summarizing the Dataset</h3>
 <p><strong>§ 1.1</strong> How many interviewees are in the dataset?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">CPS =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;data/CPSData.csv&quot;</span>)
+<span class="kw">nrow</span>(D)</code></pre></div>
+<pre><code>NULL</code></pre>
 <p><strong>§ 1.2</strong> Among the interviewees with a value reported for the Industry variable, what is the most common industry of employment? Please enter the name exactly how you see it.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(CPS<span class="op">$</span>Industry) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sort</span>(<span class="dt">decreasing =</span> T) <span class="op">%&gt;%</span><span class="st"> </span>head</code></pre></div>
+<pre><code>
+   Educational and health services                              Trade 
+                             15017                               8933 
+Professional and business services                      Manufacturing 
+                              7519                               6791 
+           Leisure and hospitality                       Construction 
+                              6364                               4387 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#從事Educational and health services相關者人數最多</span></code></pre></div>
 <p><strong>§ 1.3</strong> Which state has the fewest interviewees?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(CPS<span class="op">$</span>State) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sort</span>(<span class="dt">decreasing =</span> F) <span class="op">%&gt;%</span><span class="st"> </span>head</code></pre></div>
+<pre><code>
+   New Mexico       Montana   Mississippi       Alabama West Virginia      Arkansas 
+         1102          1214          1230          1376          1409          1421 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#New Mexico是最少受訪者的州</span></code></pre></div>
 <p>Which state has the largest number of interviewees?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(CPS<span class="op">$</span>State) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sort</span>(<span class="dt">decreasing =</span> T) <span class="op">%&gt;%</span><span class="st"> </span>head</code></pre></div>
+<pre><code>
+  California        Texas     New York      Florida Pennsylvania     Illinois 
+       11570         7077         5595         5149         3930         3912 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#California是最多受訪者的州</span></code></pre></div>
 <p><strong>§ 1.4</strong> What proportion of interviewees are citizens of the United States?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">levels</span>(CPS<span class="op">$</span>Citizenship)</code></pre></div>
+<pre><code>[1] &quot;Citizen, Native&quot;      &quot;Citizen, Naturalized&quot; &quot;Non-Citizen&quot;         </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#欄位Citizenship有三種level:  &quot;Citizen, Native&quot; , &quot;Citizen, Naturalized&quot; , &quot;Non-Citizen&quot; </span>
+
+<span class="kw">nrow</span>(<span class="kw">subset</span>(CPS,Citizenship <span class="op">!=</span><span class="st"> &quot;Non-Citizen&quot;</span>))<span class="op">/</span><span class="kw">nrow</span>(CPS)</code></pre></div>
+<pre><code>[1] 0.9422</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># 非Non-Citizen人數/全部人數</span></code></pre></div>
 <p><strong>§ 1.5</strong> For which races are there at least 250 interviewees in the CPS dataset of Hispanic ethnicity? (Select all that apply.)</p>
 <ul>
-<li>American Indian</li>
+<li>American Indian (O)</li>
 <li>Asian</li>
-<li>cBlack</li>
-<li>Multiracial</li>
+<li>cBlack (O)</li>
+<li>Multiracial (O)</li>
 <li>Pacific Islander</li>
-<li>White</li>
+<li>White (O)</li>
 </ul>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Hispanic ethnicity 西班牙裔</span>
+<span class="kw">table</span>(CPS[CPS<span class="op">$</span>Hispanic <span class="op">==</span><span class="st"> </span><span class="dv">1</span>,<span class="st">&quot;Race&quot;</span>]) <span class="op">&gt;</span><span class="st"> </span><span class="dv">250</span></code></pre></div>
+<pre><code>
+ American Indian            Asian            Black      Multiracial Pacific Islander 
+            TRUE            FALSE             TRUE             TRUE            FALSE 
+           White 
+            TRUE </code></pre>
 <p><br><br></p>
 <hr />
 </div>
@@ -210,100 +236,230 @@ $(document).ready(function () {
 <li>PeopleInHousehold</li>
 <li>Region</li>
 <li>State</li>
-<li>MetroAreaCode</li>
+<li>MetroAreaCode (O)</li>
 <li>Age</li>
-<li>Married</li>
+<li>Married (O)</li>
 <li>Sex</li>
-<li>Education</li>
+<li>Education (O)</li>
 <li>Race</li>
 <li>Hispanic</li>
 <li>CountryOfBirthCode</li>
 <li>Citizenship</li>
-<li>EmploymentStatus</li>
-<li>Industry</li>
+<li>EmploymentStatus (O)</li>
+<li>Industry (O)</li>
 </ul>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sapply</span>(<span class="kw">colnames</span>(CPS),<span class="cf">function</span>(x) <span class="kw">mean</span>(<span class="kw">is.na</span>(CPS[,x])))</code></pre></div>
+<pre><code> PeopleInHousehold             Region              State      MetroAreaCode 
+            0.0000             0.0000             0.0000             0.2608 
+               Age            Married                Sex          Education 
+            0.0000             0.1930             0.0000             0.1930 
+              Race           Hispanic CountryOfBirthCode        Citizenship 
+            0.0000             0.0000             0.0000             0.0000 
+  EmploymentStatus           Industry 
+            0.1964             0.4955 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#is.na會返回boolean值(資料點是否為NA，是返回True)，以mean計算來代表這個欄位有多少比例為NA</span></code></pre></div>
 <p><strong>§ 2.2</strong> Which is the most accurate:</p>
 <ul>
 <li>The Married variable being missing is related to the Region value for the interviewee.</li>
 <li>The Married variable being missing is related to the Sex value for the interviewee.</li>
+<li><ol start="15" style="list-style-type: upper-alpha">
 <li>The Married variable being missing is related to the Age value for the interviewee.</li>
+</ol></li>
 <li>The Married variable being missing is related to the Citizenship value for the interviewee.</li>
 <li>The Married variable being missing is not related to the Region, Sex, Age, or Citizenship value for the interviewee.</li>
 </ul>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(<span class="kw">factor</span>(<span class="kw">is.na</span>(CPS<span class="op">$</span>Married)),CPS<span class="op">$</span>Age)</code></pre></div>
+<p><img src="data:image/png;base64,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" width="672" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#可以看到20歲以下的人幾乎Married欄位都是NA，20歲以上Married都有值</span></code></pre></div>
 <p><strong>§ 2.3</strong> How many states had all interviewees living in a non-metropolitan area (aka they have a missing MetroAreaCode value)? For this question, treat the District of Columbia as a state (even though it is not technically a state).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">A =<span class="st"> </span><span class="kw">table</span>(CPS<span class="op">$</span>State,<span class="kw">is.na</span>(CPS<span class="op">$</span>MetroAreaCode)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.frame</span>()
+<span class="co">#將State,is.na(D$MetroAreaCode的列連表存入一個dataframe)</span>
+A[A<span class="op">$</span>Var2 <span class="op">==</span><span class="st"> &quot;FALSE&quot;</span> <span class="op">&amp;</span><span class="st"> </span>A<span class="op">$</span>Freq <span class="op">==</span><span class="st"> </span><span class="dv">0</span>,<span class="st">&quot;Var1&quot;</span>]</code></pre></div>
+<pre><code>[1] Alaska  Wyoming
+51 Levels: Alabama Alaska Arizona Arkansas California Colorado Connecticut ... Wyoming</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#篩選is.na的FALSE數量為0的State (所有MetroAreaCode都是NA)</span>
+<span class="co">#ans:Alaska,Wyoming</span></code></pre></div>
 <p>How many states had all interviewees living in a metropolitan area? Again, treat the District of Columbia as a state.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">A[A<span class="op">$</span>Var2 <span class="op">==</span><span class="st"> &quot;TRUE&quot;</span> <span class="op">&amp;</span><span class="st"> </span>A<span class="op">$</span>Freq <span class="op">==</span><span class="st"> </span><span class="dv">0</span>,<span class="st">&quot;Var1&quot;</span>] <span class="co">#所有MetroAreaCode都不是NA</span></code></pre></div>
+<pre><code>[1] District of Columbia New Jersey           Rhode Island        
+51 Levels: Alabama Alaska Arizona Arkansas California Colorado Connecticut ... Wyoming</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#ans: District of Columbia New Jersey , Rhode Island</span></code></pre></div>
 <p><strong>§ 2.4</strong> Which region of the United States has the largest proportion of interviewees living in a non-metropolitan area?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(CPS<span class="op">$</span>Region,<span class="kw">is.na</span>(CPS<span class="op">$</span>MetroAreaCode)) </code></pre></div>
+<pre><code>           
+            FALSE  TRUE
+  Midwest   20010 10674
+  Northeast 20330  5609
+  South     31631  9871
+  West      25093  8084</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Midwest 有最大的non-metropolitan比例 100674/(20010+10674)</span></code></pre></div>
 <p><strong>§ 2.5</strong> Which state has a proportion of interviewees living in a non-metropolitan area closest to 30%?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<p><code>tapply</code> : tapply(X,INDEX,FUN) X是一組向量，INDEX是一組和X有相同長度的factor類型向量。將X根據INDEX的值進行分組，每組丟入funtion</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sort</span>(<span class="kw">tapply</span>(<span class="kw">is.na</span>(CPS<span class="op">$</span>MetroAreaCode),CPS<span class="op">$</span>State,mean))</code></pre></div>
+<pre><code>District of Columbia           New Jersey         Rhode Island           California 
+             0.00000              0.00000              0.00000              0.02048 
+             Florida        Massachusetts             Maryland             New York 
+             0.03923              0.06492              0.06938              0.08061 
+         Connecticut             Illinois             Colorado              Arizona 
+             0.08568              0.11222              0.12991              0.13154 
+              Nevada                Texas            Louisiana         Pennsylvania 
+             0.13308              0.14370              0.16138              0.17430 
+            Michigan           Washington              Georgia             Virginia 
+             0.17826              0.18132              0.19843              0.19844 
+                Utah               Oregon             Delaware           New Mexico 
+             0.21010              0.21822              0.23397              0.24501 
+              Hawaii                 Ohio              Alabama              Indiana 
+             0.24917              0.25122              0.25872              0.29142 
+           Wisconsin       South Carolina            Minnesota             Oklahoma 
+             0.29933              0.31303              0.31507              0.32764 
+            Missouri            Tennessee               Kansas       North Carolina 
+             0.32867              0.35594              0.36227              0.37304 
+                Iowa             Arkansas                Idaho             Kentucky 
+             0.48695              0.49050              0.49868              0.50679 
+       New Hampshire             Nebraska                Maine              Vermont 
+             0.56875              0.58132              0.59832              0.65238 
+         Mississippi         South Dakota         North Dakota        West Virginia 
+             0.69431              0.70250              0.73739              0.75586 
+             Montana               Alaska              Wyoming 
+             0.83608              1.00000              1.00000 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#State是factor，將is.na(D$MetroAreaCode)根據每個不同的State來分組計算平均，得到每個Statek的non-metropolitan比例。</span>
+
+<span class="co">#ans: Wisconsin 0.29932986</span></code></pre></div>
 <p>Which state has the largest proportion of non-metropolitan interviewees, ignoring states where all interviewees were non-metropolitan?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#如上表</span>
+<span class="co">#ans: Montana</span></code></pre></div>
 <p><br><br></p>
 <hr />
 </div>
 <div id="section-3-integrating-metropolitan-area-data" class="section level3">
 <h3>Section-3 Integrating Metropolitan Area Data</h3>
+<p>Codes like MetroAreaCode and CountryOfBirthCode are a compact way to encode factor variables with text as their possible values, and they are therefore quite common in survey datasets. In fact, all but one of the variables in this dataset were actually stored by a numeric code in the original CPS datafile.</p>
+<p>When analyzing a variable stored by a numeric code, we will often want to convert it into the values the codes represent. To do this, we will use a dictionary, which maps the the code to the actual value of the variable. We have provided dictionaries MetroAreaCodes.csv and CountryCodes.csv, which respectively map MetroAreaCode and CountryOfBirthCode into their true values. Read these two dictionaries into data frames MetroAreaMap and CountryMap.</p>
 <p><strong>§ 3.1</strong> How many observations (codes for metropolitan areas) are there in MetroAreaMap?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">M =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;data/MetroAreaCodes.csv&quot;</span>)
+C =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;data/CountryCodes.csv&quot;</span>)</code></pre></div>
 <p>How many observations (codes for countries) are there in CountryMap?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">nrow</span>(M)</code></pre></div>
+<pre><code>[1] 271</code></pre>
 <p><strong>§ 3.2</strong> What is the name of the variable that was added to the data frame by the merge() operation?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<p>To merge in the metropolitan areas, we want to connect the field MetroAreaCode from the CPS data frame with the field Code in MetroAreaMap. The following command merges the two data frames on these columns, overwriting the CPS data frame with the result:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">CPS =<span class="st"> </span><span class="kw">merge</span>(CPS,M, <span class="dt">by.x=</span><span class="st">&quot;MetroAreaCode&quot;</span>, <span class="dt">by.y=</span><span class="st">&quot;Code&quot;</span>, <span class="dt">all.x=</span><span class="ot">TRUE</span>)
+<span class="co">#根據C的MetroAreaCode欄位和M的Code欄位 合併在一起，all.x代表即使C中有資料的MetroAreaCode不存在於M的Code，也要將資料留下來，對不到的M資料部份以NA填值</span></code></pre></div>
 <p>How many interviewees have a missing value for the new metropolitan area variable?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sum</span>(<span class="kw">is.na</span>(CPS<span class="op">$</span>MetroArea))</code></pre></div>
+<pre><code>[1] 34238</code></pre>
 <p><strong>§ 3.3</strong> Which of the following metropolitan areas has the largest number of interviewees?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<ul>
+<li>Atlanta-Sandy Springs-Marietta, GA</li>
+<li>Baltimore-Towson, MD</li>
+<li>Boston-Cambridge-Quincy, MA-NH (O) - which has 2229 interviewees</li>
+<li>San Francisco-Oakland-Fremont, CA</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(CPS<span class="op">$</span>MetroArea) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sort</span>(<span class="dt">decreasing =</span> T) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">head</span>(<span class="dv">10</span>)</code></pre></div>
+<pre><code>
+New York-Northern New Jersey-Long Island, NY-NJ-PA 
+                                              5409 
+      Washington-Arlington-Alexandria, DC-VA-MD-WV 
+                                              4177 
+              Los Angeles-Long Beach-Santa Ana, CA 
+                                              4102 
+          Philadelphia-Camden-Wilmington, PA-NJ-DE 
+                                              2855 
+               Chicago-Naperville-Joliet, IN-IN-WI 
+                                              2772 
+              Providence-Fall River-Warwick, MA-RI 
+                                              2284 
+                    Boston-Cambridge-Quincy, MA-NH 
+                                              2229 
+            Minneapolis-St Paul-Bloomington, MN-WI 
+                                              1942 
+                   Dallas-Fort Worth-Arlington, TX 
+                                              1863 
+                    Houston-Baytown-Sugar Land, TX 
+                                              1649 </code></pre>
 <p><strong>§ 3.4</strong> Which metropolitan area has the highest proportion of interviewees of Hispanic ethnicity?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tapply</span>(CPS<span class="op">$</span>Hispanic,CPS<span class="op">$</span>MetroArea,mean) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sort</span>(<span class="dt">decreasing =</span> T) <span class="op">%&gt;%</span><span class="st"> </span>head</code></pre></div>
+<pre><code>                Laredo, TX McAllen-Edinburg-Pharr, TX  Brownsville-Harlingen, TX 
+                    0.9663                     0.9487                     0.7975 
+               El Paso, TX              El Centro, CA            San Antonio, TX 
+                    0.7910                     0.6869                     0.6442 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Laredo, TX有最高比例的Hispanic ethnicity人數</span></code></pre></div>
 <p><strong>§ 3.5</strong> Determine the number of metropolitan areas in the United States from which at least 20% of interviewees are Asian.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">levels</span>(CPS<span class="op">$</span>Race) <span class="co">#Race: Asian</span></code></pre></div>
+<pre><code>[1] &quot;American Indian&quot;  &quot;Asian&quot;            &quot;Black&quot;            &quot;Multiracial&quot;     
+[5] &quot;Pacific Islander&quot; &quot;White&quot;           </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tapply</span>(CPS<span class="op">$</span>Race <span class="op">==</span><span class="st"> &quot;Asian&quot;</span>,CPS<span class="op">$</span>MetroArea,mean) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sort</span>(<span class="dt">decreasing =</span> T) <span class="op">%&gt;%</span><span class="st"> </span>head</code></pre></div>
+<pre><code>                      Honolulu, HI  San Francisco-Oakland-Fremont, CA 
+                            0.5019                             0.2468 
+San Jose-Sunnyvale-Santa Clara, CA              Vallejo-Fairfield, CA 
+                            0.2418                             0.2030 
+                        Fresno, CA                  Warner Robins, GA 
+                            0.1848                             0.1667 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#4個metropolitan areas有至少20%的亞洲人</span></code></pre></div>
 <p><strong>§ 3.6</strong> Passing na.rm=TRUE to the tapply function, determine which metropolitan area has the smallest proportion of interviewees who have received no high school diploma.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">levels</span>(CPS<span class="op">$</span>Education) <span class="co">#Education: No high school diploma</span></code></pre></div>
+<pre><code>[1] &quot;Associate degree&quot;        &quot;Bachelor's degree&quot;       &quot;Doctorate degree&quot;       
+[4] &quot;High school&quot;             &quot;Master's degree&quot;         &quot;No high school diploma&quot; 
+[7] &quot;Professional degree&quot;     &quot;Some college, no degree&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tapply</span>(CPS<span class="op">$</span>Education <span class="op">==</span><span class="st"> &quot;No high school diploma&quot;</span>,CPS<span class="op">$</span>MetroArea,mean,<span class="dt">na.rm =</span> T) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sort</span>(<span class="dt">decreasing =</span> F) <span class="op">%&gt;%</span><span class="st"> </span>head</code></pre></div>
+<pre><code>           Iowa City, IA        Bowling Green, KY    Kalamazoo-Portage, MI 
+                 0.02913                  0.03704                  0.05051 
+    Champaign-Urbana, IL Bremerton-Silverdale, WA             Lawrence, KS 
+                 0.05155                  0.05405                  0.05952 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#ans: Iowa City, IA 有最少比例的人教育程度是no high school diploma</span></code></pre></div>
 <p><br><br></p>
 <hr />
 </div>
 <div id="section-4-integrating-country-of-birth-data" class="section level3">
 <h3>Section-4 Integrating Country of Birth Data</h3>
+<p>Just as we did with the metropolitan area information, merge in the country of birth information from the CountryMap data frame, replacing the CPS data frame with the result. If you accidentally overwrite CPS with the wrong values, remember that you can restore it by re-loading the data frame from CPSData.csv and then merging in the metropolitan area information using the command provided in the previous subproblem.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">CPS =<span class="st"> </span><span class="kw">merge</span>(CPS,C,<span class="dt">by.x =</span> <span class="st">&quot;CountryOfBirthCode&quot;</span>,<span class="dt">by.y =</span> <span class="st">&quot;Code&quot;</span> , <span class="dt">all.x =</span> T)</code></pre></div>
 <p><strong>§ 4.1</strong> What is the name of the variable added to the CPS data frame by this merge operation?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
-<p>How many interviewees have a missing value for the new metropolitan area variable?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#新增了Country欄位</span></code></pre></div>
+<p>How many interviewees have a missing value for the new country of birth variable?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sum</span>(<span class="kw">is.na</span>(CPS<span class="op">$</span>Country))</code></pre></div>
+<pre><code>[1] 176</code></pre>
 <p><strong>§ 4.2</strong> Among all interviewees born outside of North America, which country was the most common place of birth?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
-<p><strong>§ 4.3</strong> What proportion of the interviewees from the “New York-Northern New Jersey-Long Island, NY-NJ-PA” metropolitan area have a country of birth that is not the United States?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#在北美以外的人最多在哪個country出生</span>
+<span class="kw">levels</span>(CPS<span class="op">$</span>Region)</code></pre></div>
+<pre><code>[1] &quot;Midwest&quot;   &quot;Northeast&quot; &quot;South&quot;     &quot;West&quot;     </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(CPS<span class="op">$</span>Country[CPS<span class="op">$</span>Region <span class="op">!=</span><span class="st"> &quot;Northeast&quot;</span>]) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sort</span>(<span class="dt">decreasing =</span> T) <span class="op">%&gt;%</span><span class="st"> </span>head</code></pre></div>
+<pre><code>
+United States        Mexico   Philippines         India       Vietnam   El Salvador 
+        92805          3799           764           533           421           416 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#ans: Philippines</span>
+<span class="co">#前兩名United States和Mexico都是在北美洲，答案為第三名Philippines</span></code></pre></div>
+<p><strong>§ 4.3</strong> What proportion of the interviewees from the “New York-Northern New Jersey-Long Island, NY-NJ-PA” metropolitan area have a country of birth that is not the United States? For this computation, don’t include people from this metropolitan area who have a missing country of birth</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#來自New York-Northern New Jersey-Long Island, NY-NJ-PA的人有多少比例不是出生在美國？</span>
+
+<span class="kw">mean</span>(CPS<span class="op">$</span>Country[<span class="kw">which</span>(CPS<span class="op">$</span>MetroArea <span class="op">==</span><span class="st"> &quot;New York-Northern New Jersey-Long Island, NY-NJ-PA&quot;</span>)] <span class="op">!=</span><span class="st"> &quot;United States&quot;</span>,<span class="dt">na.rm =</span> T)</code></pre></div>
+<pre><code>[1] 0.3087</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#na.rm代表不計算CPS$Country為NA的資料，不去掉的話計算mean會是NA</span></code></pre></div>
 <p><strong>§ 4.4</strong> Which metropolitan area has the largest number (note – not proportion) of interviewees with a country of birth in India?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tapply</span>(CPS<span class="op">$</span>Country <span class="op">==</span><span class="st"> &quot;India&quot;</span>,CPS<span class="op">$</span>MetroArea,sum) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sort</span>(<span class="dt">decreasing =</span> T) <span class="op">%&gt;%</span><span class="st"> </span>head</code></pre></div>
+<pre><code>              Detroit-Warren-Livonia, MI Hartford-West Hartford-East Hartford, CT 
+                                      30                                       26 
+      San Jose-Sunnyvale-Santa Clara, CA                               Fresno, CA 
+                                      19                                       16 
+       Milwaukee-Waukesha-West Allis, WI           Boston-Cambridge-Quincy, MA-NH 
+                                      12                                       11 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#ans: Detroit-Warren-Livonia, MI</span></code></pre></div>
 <p>In Brazil?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tapply</span>(CPS<span class="op">$</span>Country <span class="op">==</span><span class="st"> &quot;Brazil&quot;</span>,CPS<span class="op">$</span>MetroArea,sum) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sort</span>(<span class="dt">decreasing =</span> T) <span class="op">%&gt;%</span><span class="st"> </span>head</code></pre></div>
+<pre><code>       Boston-Cambridge-Quincy, MA-NH Miami-Fort Lauderdale-Miami Beach, FL 
+                                   18                                    16 
+  Davenport-Moline-Rock Island, IA-IL                  Canton-Massillon, OH 
+                                    4                                     3 
+          Phoenix-Mesa-Scottsdale, AZ                   Barnstable Town, MA 
+                                    3                                     2 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#ans: Boston-Cambridge-Quincy, MA-NH</span></code></pre></div>
 <p>In Somalia?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#</span>
-<span class="co">#</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tapply</span>(CPS<span class="op">$</span>Country <span class="op">==</span><span class="st"> &quot;Somalia&quot;</span>,CPS<span class="op">$</span>MetroArea,sum) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sort</span>(<span class="dt">decreasing =</span> T) <span class="op">%&gt;%</span><span class="st"> </span>head</code></pre></div>
+<pre><code>Phoenix-Mesa-Scottsdale, AZ               St. Cloud, MN                  Dayton, OH 
+                          7                           7                           1 
+               Richmond, VA Albany-Schenectady-Troy, NY                  Albany, GA 
+                          1                           0                           0 </code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#ans: Phoenix-Mesa-Scottsdale, AZ</span></code></pre></div>
 <p><br><br><br></p>
 </div>
 

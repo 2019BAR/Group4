@@ -49,11 +49,11 @@ Sys.setlocale('LC_ALL','C') #更改R預設語系
 + `Date`：日期
 + `StockPrice`：給定月份公司的平均股價
 ```{r}
-IBM
-GE
-ProcterGamble
-CocaCola
-Boeing
+head(IBM)
+head(GE)
+head(ProcterGamble)
+head(CocaCola)
+head(Boeing)
 ```
 
 在這個案例，我們將看看這些公司的股票動態如何隨著時間的推移而發生變化。
@@ -289,7 +289,7 @@ __§ 4.2__ General Electric and Coca-Cola both have their highest average stock 
 #
 tapply(GE$StockPrice,months(GE$Date),mean) %>%sort(decreasing = TRUE)
 tapply(CocaCola$StockPrice,months(CocaCola$Date),mean) %>%sort(decreasing = TRUE)
-#從表上顯示，四月皆為他們平均股價最高的月份
+#從表上顯示，四月皆為他們平均股價最高的月分
 ```
 
 __§ 4.3__ For the months of December and January, every company's average stock is higher in one month and lower in the other. In which month are the stock prices lower?
