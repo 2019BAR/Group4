@@ -49,11 +49,11 @@ Sys.setlocale('LC_ALL','C') #更改R預設語系
 + `Date`：日期
 + `StockPrice`：給定月份公司的平均股價
 ```{r}
-IBM
-GE
-ProcterGamble
-CocaCola
-Boeing
+head(IBM)
+head(GE)
+head(ProcterGamble)
+head(CocaCola)
+head(Boeing)
 ```
 
 在這個案例，我們將看看這些公司的股票動態如何隨著時間的推移而發生變化。
