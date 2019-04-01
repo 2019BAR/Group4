@@ -116,7 +116,7 @@ ANS:不一定，可能會有過度配適的問題
 假設有一個賭局，你可以花30元選定一個連續60秒的時段，如果老忠實下一次的噴發時間落在你指定的區間，你就可以贏到100元；請你使用頻寬為`0.5`的平滑密度模型 ...<br>
 ```{r}
 par(cex = 0.7)
-plot(0, 0, xlim = c(0, 6), ylim = c(0, 1), xlab = "噴發時間", ylab = "密度 or (累計)機率", main = "分布、機率與密度")
+plot(0, 0, xlim = c(0, 6), ylim = c(0, 1), xlab = "eruptions", ylab = "PDF or CDF", main = "distribution,density,probability")
 abline(h = 1, col = 'blue', lty = 2)
 DEN = density(faithful$eruptions, adjust = 0.5)
 lines(DEN, col = 'black')
@@ -125,9 +125,9 @@ plot(ecdf(faithful$eruptions), cex=0, verticals=T, lwd=2, col='yellow', add=T)
 ```
 
 &emsp;■ 決定要不要參加這個賭局<br>
-ANS:要
+ANS:要<br>
 &emsp;■ 如果你參加的話，你要把噴發時間設定在哪一個區間呢？<br>
-ANS:3.9~4.9
+ANS:3.9~4.9<br>
 &emsp;■ 你設在這個區間的話，參加這個賭局的期望值是？<br>
 ```{r}
 DEN = density(faithful$eruptions, adjust = 0.5) 
@@ -144,7 +144,6 @@ PROB
 &emsp;■ 你要怎麼押注，才能獲得最高的期望值呢？<br>
 ```{r}
 D = faithful$eruptions
-summary(D)
 times = seq(1.6,5.1-1/6,1/6) #每10秒一個區間
 length(times) #共有21個可下注點(時間起始)
 
