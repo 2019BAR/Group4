@@ -26,38 +26,63 @@ Sys.setlocale('LC_ALL','C')
 <p class="qiz">
 【A.選擇方法】<br>
 &emsp;■ 我們為甚麼需要隨機變數？ 什麼時候我們需要用到隨機變數？<br>
-#ANS:隨機變數是隨機事件的數字表現，換算成數字可以讓我們更容易分析不確定事件<br>
+&emsp;&emsp;<font color=blue> ANS:隨機變數是隨機事件的數字表現，換算成數字可以讓我們更容易分析不確定事件<br>
+
 &emsp;■ 隨機變數沒有固定的值，那我們要如何做計算呢？<br>
-#ANS:運用現有資訊找出期望值、變異數，及其分布型態<br>
+&emsp;&emsp;<font color=blue>
+ANS:利用機率密度計算隨機變數可能出現的機率。<br>
+
 &emsp;■ 我們可以用直方圖或數值標記來估計噴發時間落在某一區間的機率嗎？<br>
-#ANS:直方圖可以透過下方面積看出大約的機率<br>
+&emsp;&emsp;<font color=blue>
+ANS:直方圖可以透過下方面積看出大約的機率<br>
+
 &emsp;■ 直方圖(histogram)也可以當作一種模型嗎？ 數值標記(rug)呢？<br>
-#ANS:直方圖可以透過調整binwidth增加估計面積的準確度，因此可以當作模型，而數值標記是精準紀錄每一次的發生，無法用來估計每個區間的發生機率，因此不算模型<br>
+&emsp;&emsp;<font color=blue>
+ANS:直方圖可以透過調整binwidth增加估計面積的準確度，因此可以當作模型，而數值標記是精準紀錄每一次的發生，無法用來估計每個區間的發生機率，因此不算模型<br>
+
 &emsp;■ 直方圖和平滑模型哪一個比較適合用來表示噴發時間的分布？ 為甚麼？<br>
-#ANS:<br>
-&emsp;■ 用數值標記來預測噴發時間會比用直方圖「準」嗎？ 「準」是什麼意思呢？<br>
-#ANS:不會，因為數值標記標記的是每一次的噴發時間，無法用來預估每個區間的發生機率。準是指預測發生時間的精確度
+&emsp;&emsp;<font color=blue>
+ANS:噴發時間是一種連續變數，用直方圖其實並不能真正表達分布，且會有量化的誤差(鋸齒狀)。用平滑模型較適合。
 <br>
+
+&emsp;■ 用數值標記來預測噴發時間會比用直方圖「準」嗎？ 「準」是什麼意思呢？<br>
+&emsp;&emsp;<font color=blue>
+ANS:不會，因為數值標記標記的是每一次的噴發時間，無法用來預估每個區間的發生機率。準是指預測發生時間的精確度。<br>
+
 【B.調整參數】調整一下模型參數的滑桿 ...<br>
 &emsp;■ 你覺得最合適的直方圖欄數(`support/binwidth`)是？ 為甚麼？<br>
-#ANS:16最合適，因為此時的直方圖累積機率函數較接近平滑<br>
+&emsp;&emsp;<font color=blue>
+ANS:16最合適，因為此時的直方圖累積機率函數較接近平滑<br>
+
 &emsp;■ 最合適的平滑模型頻寬(`bandwidth`)呢？<br>
-#ANS:大概在0.6~0.8之間，最接近直方圖分布<br>
+&emsp;&emsp;<font color=blue>
+ANS:大概在0.6~0.8之間，最接近直方圖分布<br>
+
 &emsp;■ 調高欄寬和頻寬會讓模型變複雜，還是變簡單呢？<br>
-#ANS:調高欄寬會讓模型變複雜，調高頻寬會讓模型變簡單<br>
+&emsp;&emsp;<font color=blue>
+ANS:調高欄寬會讓模型變複雜，調高頻寬會讓模型變簡單<br>
+
 &emsp;■ 模型越複雜，它跟實際值之間的誤差是越大、還是越小？<br>
-#ANS:越複雜誤差越小<br>
+&emsp;&emsp;<font color=blue>
+ANS:越複雜誤差越小<br>
+
 &emsp;■ 那麼，越複雜的模型就會越準，對嗎？<br>
-#ANS:不一定，越複雜是對採集的樣本精準，反而更難廣泛用於預測母體
-<br>
+&emsp;&emsp;<font color=blue>
+ANS:不一定，越複雜是對採集的樣本精準，反而更難廣泛用於預測母體<br>
+
 【C.建立模型、估計機率】<br>
 請從課堂筆記的程式碼找出來 ... <br>
 &emsp;■ 從變數向量(`D`)求出機率密度曲線(`DEN`)<br>
-#DEN = density(D, adjust = input$B)  #inputB 是設定的頻寬<br>
+&emsp;&emsp;<font color=blue>
+lines(DEN, col='gold', lwd=3)<br>
+
 &emsp;■ 將機率密度曲線(`DEN`)轉換成機率密度函數(`PDF`)<br>
-#PDF = approxfun(DEN$x, DEN$y, yleft=0, yright=0)<br>
+&emsp;&emsp;<font color=blue>
+PDF = approxfun(DEN$x, DEN$y, yleft=0, yright=0)<br>
+
 &emsp;■ 對機率密度函數(`PDF`)做積分，算出機率(`PROB`)<br>
-#PROB = integrate(PDF, input$R[1], input$R[2])$value<br>
+&emsp;&emsp;<font color=blue>
+integrate(PDF, x1, y1)$value<br>
 
 這三行程式，然後...<br>
 &emsp;■ 將頻寬調整參數(`adjust`)設為`1`，算出「等待時間」落在80到90之間的機率<br>
@@ -65,8 +90,8 @@ Sys.setlocale('LC_ALL','C')
 D = faithful$waiting 
 DEN = density(D, adjust = 1) 
 plot(DEN)
-abline(v = 8, lwd = 1)
-abline(v = 9, lwd = 1)
+abline(v = 80, lwd = 1,lty=2,col="red")
+abline(v = 90, lwd = 1,lty=2,col="red")
 PDF = approxfun(DEN$x, DEN$y, yleft=0, yright=0)
 PROB1 = integrate(PDF,80,90)$value
 PROB1
@@ -77,8 +102,8 @@ PROB1
 D = faithful$waiting 
 DEN = density(D, adjust = 0.5) 
 plot(DEN)
-abline(v = 8, lwd = 1)
-abline(v = 9, lwd = 1)
+abline(v = 80, lwd = 1,lty=2,col="red")
+abline(v = 90, lwd = 1,lty=2,col="red")
 PDF = approxfun(DEN$x, DEN$y, yleft=0, yright=0)
 PROB2 = integrate(PDF,80,90)$value
 PROB2
@@ -91,7 +116,7 @@ ANS:不一定，可能會有過度配適的問題
 假設有一個賭局，你可以花30元選定一個連續60秒的時段，如果老忠實下一次的噴發時間落在你指定的區間，你就可以贏到100元；請你使用頻寬為`0.5`的平滑密度模型 ...<br>
 ```{r}
 par(cex = 0.7)
-plot(0, 0, xlim = c(0, 6), ylim = c(0, 1), xlab = "噴發時間(分鐘)", ylab = "密度 or (累計)機率", main = "分布、機率與密度")
+plot(0, 0, xlim = c(0, 6), ylim = c(0, 1), xlab = "噴發時間", ylab = "密度 or (累計)機率", main = "分布、機率與密度")
 abline(h = 1, col = 'blue', lty = 2)
 DEN = density(faithful$eruptions, adjust = 0.5)
 lines(DEN, col = 'black')
@@ -118,20 +143,36 @@ PROB
 假如賭場老闆從零開始把每10秒鐘設為一個區間，每個區間的賭金是五塊錢 ...<br>
 &emsp;■ 你要怎麼押注，才能獲得最高的期望值呢？<br>
 ```{r}
-i1=seq(1.6,5.1-1/6,1/6)
-i2=seq(1.6+1/6,5.1,1/6)
-p2=data.frame(i1,i2)
-for(i in 1:21){
-  p2[i, 3]=integrate(PDF,i1[i],i2[i])$value
+D = faithful$eruptions
+summary(D)
+times = seq(1.6,5.1-1/6,1/6) #每10秒一個區間
+length(times) #共有21個可下注點(時間起始)
+
+#DEN
+Adjust = 0.5    # bandwidth adjustment
+DEN = density(D, adjust = Adjust)
+
+PDF = approxfun(DEN$x, DEN$y, yleft=0, yright=0)
+x = times
+y = sapply(x, function(i) integrate(PDF, -Inf, i)$value) #CDF
+
+
+exp = c()
+for(i in c(1:20)){
+  prob = y[i+1] - y[i] #每個區間的機率
+  exp = append(exp,95*prob+(-5)*(1-prob))
+
 }
-head(p2[order(p2$V3,decreasing = T),],6)
-#ANS:押以下6個區間
+
+times[exp > 0] #選擇期望值>0的區間   可以下注這10個時間起始點
 ```
 
 &emsp;■ 你的賭金和期望值各是多少？<br>
 ```{r}
-70 * sum(p2[c(2, 3, 16, 17, 18, 19),3]) - 30 * (1 - sum(p2[c(2, 3, 16, 17, 18, 19),3])) 
-#ANS:賭金30，期望利潤20.731
+#賭金
+5*10
+#期望值
+sum(exp[exp > 0])
 ```
 
 <br>
