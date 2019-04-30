@@ -1,0 +1,604 @@
+---
+title: "Olist電商資料探索"
+author: "【第四組】 陳韻卉 張哲瑋 巢正修 陳雅靜 戴婉錡 陳柏愷"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+
+```{r message=F, warning=F}
+
+library(knitr); opts_chunk$set(comment = NA)
+library(dplyr)
+library(ggplot2)
+library(d3heatmap)
+library(googleVis)
+library(servr)
+library(tidyr)
+library(htmltools)
+
+```
+
+
+```{r}
+load("origin.RData") #load 原始資料
+```
+
+
+
+# 資料合併、整理
+
+```{r}
+Order = merge(Order,Pay) # 一筆是一個訂單
+Order = merge(Order,Customer)  # 一筆是一個訂單
+
+Order$order_purchase_timestamp = as.POSIXct(Order$order_purchase_timestamp, format = "%Y-%m-%d %H:%M:%S")
+
+min(Order$order_purchase_timestamp)
+max(Order$order_purchase_timestamp)
+```
+
+
+```{r}
+hist(Order$order_purchase_timestamp, "month", las = 2,freq = T,xlab = "")
+```
+
+
+```{r}
+table(format(Order$order_purchase_timestamp, "%u"), format(Order$order_purchase_timestamp, "%H")) %>%
+  as.data.frame.matrix %>%
+  d3heatmap(F,F,col=colorRamp(c('seagreen','lightyellow','red')))
+```
+
+
+
+```{r}
+names(CatName)[1] = "product_category_name"
+Product = merge(Product,CatName)
+```
+
+
+```{r}
+ProductSell = merge(Order,Item) #一筆 是一個產品的銷售紀錄
+ProductSell = merge(ProductSell,Product) #一筆 是一個產品的銷售紀錄
+ProductSell = merge(Seller,ProductSell) #一筆是一個賣家的產品銷售紀錄
+```
+
+
+
+商品種類的實際需求數量
+```{r}
+ProductSell %>% 
+  group_by(product_category_name_english) %>% 
+  summarise(
+    n = n()
+  ) %>% arrange(desc(n))
+```
+
+
+沒有銷售紀錄的商家
+```{r}
+sum(is.na(ProductSell$product_id))
+#有62
+subset(ProductSell,is.na(product_id)) 
+```
+
+去除沒有銷售紀錄的商家
+```{r}
+ProductSell = subset(ProductSell,!is.na(product_id)) 
+```
+
+
+```{r}
+length(unique(ProductSell$seller_id))
+#在銷售紀錄中 共有3095個不同的賣家
+#但Deal資料集中 只有842位賣家的資料(看起來是透過網頁註冊的賣家才會放在這個資料集)
+```
+
+
+
+
+## 2.產品類別的特性比較
+
+
+```{r}
+ggplot(ProductSell,aes(x=product_category_name_english,y=price))+
+  geom_boxplot()+
+  scale_y_log10()
+  
+```
+
+
+> 因為Review是針對一筆訂單，而訂單可能包含多項商品，我們不知道評論究竟是針對訂單中的哪一個產品，因此篩選出只有
+買一個商品的訂單，可以確保評論的星等是針對此商品。
+
+篩選出只有購買一個商品的訂單
+```{r}
+One_product = Item %>%
+        group_by(order_id) %>% 
+        summarise(product_num = n_distinct(order_item_id)) %>% 
+        filter(product_num == 1)
+```
+
+以產品類別做分組
+計算出平均單價、總收益、商品總賣出數、有多少賣家賣出此種產品類別
+```{r}
+X = ProductSell %>%
+    filter(order_id %in% One_product$order_id) %>%  #篩選出只有購買一個商品的訂單
+    group_by(product_category_name_english) %>% 
+    summarise(
+      avg_price = mean(price), #平均單價
+      total_rev = sum(price), #總收益
+      total_sold_num = n(),　#商品總賣出數
+      total_seller_num = n_distinct(seller_id),
+      total_cust_num = n_distinct(customer_unique_id),
+      avg_fre = mean(freight_value)
+      #有多少賣家賣出此種產品類別
+    ) %>% mutate()
+
+```
+
+
+以產品類別做分組
+計算出總評論數量、平均評論分數
+```{r}
+
+ProductReview = ProductSell %>%
+                filter(order_id %in% One_product$order_id) %>% 
+                left_join(Reviews) #保留那些沒有評論的商品
+
+visCate = ProductReview %>% 
+  group_by(product_category_name_english) %>%
+  summarise(
+    total_review_num = n(), #評論數量
+    avg_review_score = mean(review_score)) %>% 
+  merge(X) %>% 
+  mutate(dummy = 2018)
+
+```
+
+
+google motion chart
+```{r}
+op <- options(gvis.plot.tag='chart')
+options(op)
+vistmp = gvisMotionChart(
+  visCate, "product_category_name_english", "dummy",
+  options=list(width=800, height=600, title="Product category"))
+
+print(vistmp, file="M.html")
+
+includeHTML("./M.html")
+```
+
+
+## 3.賣家所在地區（州）的特性比較
+
+```{r}
+
+X = ProductSell %>%
+    filter(order_id %in% One_product$order_id) %>%  #篩選出只有購買一個商品的訂單
+    group_by(seller_state) %>% 
+    summarise(
+      avg_price = mean(price),
+      total_rev = sum(price),
+      total_sold_num = n(),
+      total_seller_num = n_distinct(seller_id),
+      total_cust_num = n_distinct(customer_unique_id),
+      avg_fre = mean(freight_value)
+    )
+
+visState = ProductReview %>% 
+  group_by(seller_state) %>%
+  summarise(
+    total_review_num = n(), #評論數量
+    avg_review_score = mean(review_score)) %>% 
+  merge(X) %>% 
+  mutate(dummy = 2018)
+
+```
+
+
+```{r}
+op <- options(gvis.plot.tag='chart')
+options(op)
+vistmp = gvisMotionChart(
+  visState, "seller_state", "dummy",
+  options=list(width=800, height=600, title="Product category"))
+
+print(vistmp, file="M.html")
+includeHTML("./M.html")
+
+```
+
+
+### 地理繪圖
+
+
+將州名縮寫對照到全名
+
+```{r}
+abbrBZ = read.csv("state.csv")
+names(abbrBZ)[1] = "ABBR"
+```
+
+```{r}
+vis = merge(visState,abbrBZ,by.x = "seller_state",by.y = "ABBR")
+```
+
+
+```{r}
+GeoStates <- gvisGeoChart(vis, 
+                          locationvar = "State_name",
+                          
+                          colorvar = "total_sold_num", 
+                          sizevar = "total_cust_num",
+                          hovervar = "seller_state",
+                          options=list(region="BR",
+                                       displayMode="regions", 
+                                       resolution="provinces",
+                          width=800, height=600))
+
+print(GeoStates, file="geo.html")
+
+includeHTML("./geo.html")
+```
+
+
+
+##4. 分群：以賣家銷售資料對賣家做分群　推測其產業類別
+
+> 在marketing funnel中的Deal資料集中
+有business_segment欄位說明賣家屬於哪個產業類別
+但只有提供377多個商家有business_segment
+
+```{r}
+X = merge(Deal,ProductSell)
+length(unique(X$seller_id))
+```
+
+
+原本的business_segment有幾種類別
+```{r}
+levels(Deal$business_segment)
+```
+
+> 所有我們嘗試對賣家做分群
+並查看每群特性
+推測其產業類別
+
+分群的來源資料為 ProductSell:每一筆是一個賣家的商品銷售紀錄<br>
+整理出一個dataframe<br>
+每一列是一個賣家 欄位是每種產品種類的sold number
+
+```{r}
+Segment = table(ProductSell$seller_id,ProductSell$product_category_name_english) %>% as.data.frame 
+Segment = Segment %>% spread(Var2,Freq) #從長表格整理成寬表格
+names(Segment)[1] = "seller_id"
+
+```
+
+只選取有銷售紀錄的賣家
+```{r}
+Segment = Segment[rowSums(Segment[,2:72]) != 0,]
+```
+
+
+## 分群找出產業類別
+
+> 根據賣家銷售紀錄來對賣家做分群，我們對賣家銷售紀錄的處理方法有兩種
+
+
+### 1. 0/1 沒賣/有賣 商品
+
+> 將產品種類賣出數 轉成 只要有賣就是true , 沒賣是false 的格式
+但我們認為這樣子會失去單一賣家的銷售特性
+
+
+### 2.賣家銷售類別比例 來計算距離作分群
+
+> 以prop.table(margin=1) 計算每個賣家銷售產品的類別比例
+
+```{r}
+
+mx = as.matrix(Segment[,2:72]) %>% prop.table(margin=1)
+hc = dist(mx) %>% hclust(method="ward.D2")
+```
+
+> 在反覆測試分群數目後，選擇20作為最終分群數
+
+
+```{r}
+kg = cutree(hc, k=20)
+
+cluster = as.data.frame(table(kg))
+
+ggplot(cluster,aes(x=reorder(kg, -Freq), y = Freq)) + 
+    geom_bar(stat="identity")+
+    labs(x="第幾群",y="群內賣家數量")
+```
+
+
+```{r}
+
+mx = as.data.frame(mx)
+mx$group = factor(cutree(hc, k=20))
+```
+
+
+```{r}
+D = mx %>% 
+  group_by(group) %>% 
+  summarise_each(funs(mean))
+```
+
+
+> 以熱圖呈現每群特性：同一群賣家的銷售產品類別比例
+
+```{r}
+D[,2:72] %>% 
+  as.matrix %>%
+d3heatmap(col=colorRampPalette(c('black','darkblue','blue','green','yellow','orange','red'))(999))
+```
+
+
+
+> 先以第二種方法來看的話
+
+
+### 每個產業類別有領導賣家嗎？
+
+得到group id後 合併回去銷售資料
+
+```{r}
+X = ProductSell %>%
+  group_by(seller_id) %>%
+  summarise(
+    total_sold_num = n(),
+    total_rev = sum(price),
+    avg_freight = mean(freight_value),
+    prod_num = n_distinct(product_id),
+    avg_photo_qty = mean(product_photos_qty)
+  )
+
+```
+
+```{r}
+Leader = cbind(X,mx[,"group"])
+names(Leader)[7] = "group"
+```
+
+
+以x軸為賣家總賣出的商品數量 , y軸為總收益
+看出有哪幾群出現領導賣家
+```{r}
+ggplot(Leader,aes(x=total_sold_num,y=total_rev))+
+  geom_point()+
+  facet_wrap(.~group)
+```
+
+
+> 我們觀察這20群中，簡單歸類出4種市場表現，並可以往回看熱圖觀察這群是什麼產業類別。
+
+1. 第7群：　雖然出現銷售數量比他人多的賣家，但總收益並沒有比有些賣得少的人還多，也就是他的平均收益並沒有領先他人太多
+
+2. 第5群：　出現賣的多、收益也多的領導賣家
+
+3. 第11群：　出現多個表現特殊的賣家，以收益為100000~1500000的兩個賣家來做比較的話，會發現銷售數
+不一定是影響收益多少的關鍵，賣得少也可以獲得可觀的收益(也就是說，這個賣家能將有限資源做最大的發揮，並反映在商品價值上。) 第11群是watches_gift產業類別，或許可以想成是手錶市場上有兩種賣家，一家具有指標性產品，會吸引特定買家購買（因此平均定價可拉高）。而另外一家則是主打親民，人人都買得起的商品。這種情況下，消費者會根據其偏好，購買能滿足他們需求的產品。
+
+4. 第18群：　是pet shops產業，他是一個完全競爭市場，大家的平均收益的差不多，並沒有一個特殊賣家可以獲得較大的市場比例，消費者並沒有對特定賣家忠誠，或是有特殊的喜好
+
+> 三個觀察點
+
++ 1.	觀察不同市場中，廠商銷售數及其收益的關係。
++ 2.	壟斷性競爭
+    + a.	不完全競爭市場
+    + b.	消費者偏好及品牌忠誠度
+    + c.	定價策略
++ 3.	產業集中度
+    + a.	用于衡量產業競爭性和壟斷性的最常用指標。
+    + b.	產業集中度高，代表這家企業具有較大的市場力
+    + c.	領導廠商定價
+
+
+## 5. 照片數量與銷售量的關係
+
+
+### 家具類商品的googlevis
+
+
+```{r}
+X_furniture = ProductSell %>%
+    filter(order_id %in% One_product$order_id) %>%  #篩選出只有購買一個商品的訂單
+    filter(product_category_name_english == "furniture_decor") %>% 
+    group_by(product_id) %>% 
+    summarise(
+      avg_price = mean(price),
+      total_price = sum(price),
+      total_sold_num = n(),
+      total_seller_num = n_distinct(seller_id),
+      photo_qty = mean(product_photos_qty)
+    ) %>% mutate()
+
+```
+
+
+```{r}
+vis_furniture = ProductSell %>%
+  filter(order_id %in% One_product$order_id) %>%
+  filter(product_category_name_english == "furniture_decor") %>% 
+  merge(Reviews) %>% 
+  group_by(product_id) %>%
+  summarise(
+    total_review_num = n(), #評論數量
+    avg_review_score = mean(review_score)) %>% 
+  merge(X_furniture) 
+M = select(ProductSell, product_id, order_purchase_timestamp)
+vis_furniture = merge(vis_furniture, M)
+vis_furniture$order_purchase_timestamp = as.Date(vis_furniture$order_purchase_timestamp, format = "%Y-%m-%d %H:%M:%S")
+vis_furniture = unique(vis_furniture)
+```
+
+```{r}
+vistmp_furniture = gvisMotionChart(
+  vis_furniture, "product_id", "order_purchase_timestamp", 
+  options = list(width = 800, height = 600, title = "product category")
+)
+print(vistmp_furniture, file = "Furniture.html")
+```
+
+
+##食物類產品
+
+```{r}
+X_food = ProductSell %>%
+    filter(order_id %in% One_product$order_id) %>%  #篩選出只有購買一個商品的訂單
+    filter(product_category_name_english == "food") %>% 
+    group_by(product_id) %>% 
+    summarise(
+      avg_price = mean(price),
+      total_price = sum(price),
+      total_sold_num = n(),
+      total_seller_num = n_distinct(seller_id),
+      photo_qty = mean(product_photos_qty)
+    ) %>% mutate()
+vis_food = ProductReview  %>%
+  filter(order_id %in% One_product$order_id) %>%
+  filter(product_category_name_english == "food") %>% 
+  merge(Reviews) %>% 
+  group_by(product_id) %>%
+  summarise(
+    total_review_num = n(), #評論數量
+    avg_review_score = mean(review_score)) %>% 
+  merge(X_food) 
+M = select(ProductReview , product_id, order_purchase_timestamp)
+vis_food = merge(vis_furniture, M)
+vis_food$order_purchase_timestamp = as.Date(vis_food$order_purchase_timestamp, format = "%Y-%m-%d %H:%M:%S")
+vis_food = unique(vis_food)
+
+vistmp_food = gvisMotionChart(
+  vis_food, "product_id", "order_purchase_timestamp",
+  options=list(width=800, height=600, title="Product category") )
+
+
+print(vistmp_food, file = "Food.html")
+includeHTML("Food.html")
+
+
+```
+
+##寵物相關商品
+```{r}
+X_petshop = ProductSell %>%
+    filter(order_id %in% One_product$order_id) %>%  #篩選出只有購買一個商品的訂單
+    filter(product_category_name_english == "pet_shop") %>% 
+    group_by(product_id) %>% 
+    summarise(
+      avg_price = mean(price),
+      total_price = sum(price),
+      total_sold_num = n(),
+      total_seller_num = n_distinct(seller_id),
+      photo_qty = mean(product_photos_qty)
+    ) %>% mutate()
+vis_petshop = ProductReview %>%
+  filter(order_id %in% One_product$order_id) %>%
+  filter(product_category_name_english == "pet_shop") %>% 
+  merge(Reviews) %>% 
+  group_by(product_id) %>%
+  summarise(
+    total_review_num = n(), #評論數量
+    avg_review_score = mean(review_score)) %>% 
+  merge(X_petshop) 
+M = select(ProductReview, product_id, order_purchase_timestamp)
+vis_petshop = merge(vis_petshop, M)
+vis_petshop$order_purchase_timestamp = as.Date(vis_petshop$order_purchase_timestamp, format = "%Y-%m-%d %H:%M:%S")
+vis_petshop = unique(vis_petshop)
+
+vistmp_petshop = gvisMotionChart(
+  vis_petshop, "product_id", "order_purchase_timestamp", 
+  options = list(width = 800, height = 600, title = "product category")
+)
+print(vistmp_petshop, file = "Petshop.html")
+includeHTML("Petshop.html")
+
+```
+
+##手錶禮品類
+```{r}
+X_watch = ProductSell %>%
+    filter(order_id %in% One_product$order_id) %>%  #篩選出只有購買一個商品的訂單
+    filter(product_category_name_english == "watches_gifts") %>% 
+    group_by(product_id) %>% 
+    summarise(
+      avg_price = mean(price),
+      total_price = sum(price),
+      total_sold_num = n(),
+      total_seller_num = n_distinct(seller_id),
+      photo_qty = mean(product_photos_qty)
+    ) %>% mutate()
+vis_watch = ProductReview %>%
+  filter(order_id %in% One_product$order_id) %>%
+  filter(product_category_name_english == "watches_gifts") %>% 
+  merge(Reviews) %>% 
+  group_by(product_id) %>%
+  summarise(
+    total_review_num = n(), #評論數量
+    avg_review_score = mean(review_score)) %>% 
+  merge(X_watch) 
+M = select(ProductReview, product_id, order_purchase_timestamp)
+vis_watch = merge(vis_watch, M)
+vis_watch$order_purchase_timestamp = as.Date(vis_watch$order_purchase_timestamp, format = "%Y-%m-%d %H:%M:%S")
+vis_watch = unique(vis_watch)
+
+vistmp_watch = gvisMotionChart(
+  vis_watch, "product_id", "order_purchase_timestamp", 
+  options = list(width = 800, height = 600, title = "product category")
+)
+print(vistmp_watch, file = "Watch.html")
+includeHTML("Watch.html")
+
+```
+
+##香水
+```{r}
+X_perfumery = ProductSell %>%
+    filter(order_id %in% One_product$order_id) %>%  #篩選出只有購買一個商品的訂單
+    filter(product_category_name_english == "perfumery") %>% 
+    group_by(product_id) %>% 
+    summarise(
+      avg_price = mean(price),
+      total_price = sum(price),
+      total_sold_num = n(),
+      total_seller_num = n_distinct(seller_id),
+      photo_qty = mean(product_photos_qty)
+    ) %>% mutate()
+vis_perfumery =  ProductReview%>%
+  filter(order_id %in% One_product$order_id) %>%
+  filter(product_category_name_english == "perfumery") %>% 
+  merge(Reviews) %>% 
+  group_by(product_id) %>%
+  summarise(
+    total_review_num = n(), #評論數量
+    avg_review_score = mean(review_score)) %>% 
+  merge(X_furniture) 
+M = select(ProductReview, product_id, order_purchase_timestamp)
+vis_perfumery = merge(vis_perfumery, M)
+vis_perfumery$order_purchase_timestamp = as.Date(vis_perfumery$order_purchase_timestamp, format = "%Y-%m-%d %H:%M:%S")
+vis_perfumery = unique(vis_perfumery)
+
+vistmp_perfumery = gvisMotionChart(
+  vis_perfumery, "product_id", "order_purchase_timestamp", 
+  options = list(width = 800, height = 600, title = "product category")
+)
+print(vistmp_perfumery, file = "Perfumery.html")
+includeHTML("Perfumery.html")
+
+```
+
+
+```{r}
+save.image("olist_final.RData")
+```
+

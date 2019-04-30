@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="https://www.w3.org/1999/xhtml">
+<head>
+<title>MotionChartID317037c12dd2</title>
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+<style type="text/css">
+body {
+  color: #444444;
+  font-family: Arial,Helvetica,sans-serif;
+  font-size: 75%;
+  }
+  a {
+  color: #4D87C7;
+  text-decoration: none;
+}
+</style>
+</head>
+<body>
+ <!-- MotionChart generated in R 3.5.1 by googleVis 0.6.3 package -->
+<!-- Tue Apr 30 18:52:24 2019 -->
+
+
+<!-- jsHeader -->
+<script type="text/javascript">
+ 
+// jsData 
+function gvisDataMotionChartID317037c12dd2 () {
+var data = new google.visualization.DataTable();
+var datajson =
+[
+ [
+"",
+new Date(,,),
+,
+,
+,
+,
+,
+,
+
+] 
+];
+data.addColumn('string','product_id');
+data.addColumn('date','order_purchase_timestamp');
+data.addColumn('number','total_review_num');
+data.addColumn('number','avg_review_score');
+data.addColumn('number','avg_price');
+data.addColumn('number','total_price');
+data.addColumn('number','total_sold_num');
+data.addColumn('number','total_seller_num');
+data.addColumn('number','photo_qty');
+data.addRows(datajson);
+return(data);
+}
+ 
+// jsDrawChart
+function drawChartMotionChartID317037c12dd2() {
+var data = gvisDataMotionChartID317037c12dd2();
+var options = {};
+options["width"] = 800;
+options["height"] = 600;
+options["state"] = "";
+options["title"] = "product category";
+
+
+    var chart = new google.visualization.MotionChart(
+    document.getElementById('MotionChartID317037c12dd2')
+    );
+    chart.draw(data,options);
+    
+
+}
+  
+ 
+// jsDisplayChart
+(function() {
+var pkgs = window.__gvisPackages = window.__gvisPackages || [];
+var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
+var chartid = "motionchart";
+  
+// Manually see if chartid is in pkgs (not all browsers support Array.indexOf)
+var i, newPackage = true;
+for (i = 0; newPackage && i < pkgs.length; i++) {
+if (pkgs[i] === chartid)
+newPackage = false;
+}
+if (newPackage)
+  pkgs.push(chartid);
+  
+// Add the drawChart function to the global list of callbacks
+callbacks.push(drawChartMotionChartID317037c12dd2);
+})();
+function displayChartMotionChartID317037c12dd2() {
+  var pkgs = window.__gvisPackages = window.__gvisPackages || [];
+  var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
+  window.clearTimeout(window.__gvisLoad);
+  // The timeout is set to 100 because otherwise the container div we are
+  // targeting might not be part of the document yet
+  window.__gvisLoad = setTimeout(function() {
+  var pkgCount = pkgs.length;
+  google.load("visualization", "1", { packages:pkgs, callback: function() {
+  if (pkgCount != pkgs.length) {
+  // Race condition where another setTimeout call snuck in after us; if
+  // that call added a package, we must not shift its callback
+  return;
+}
+while (callbacks.length > 0)
+callbacks.shift()();
+} });
+}, 100);
+}
+ 
+// jsFooter
+</script>
+ 
+<!-- jsChart -->  
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartMotionChartID317037c12dd2"></script>
+ 
+<!-- divChart -->
+  
+<div id="MotionChartID317037c12dd2" 
+  style="width: 800; height: 600;">
+</div>
+ <div><span>Data: vis_perfumery &#8226; Chart ID: <a href="Chart_MotionChartID317037c12dd2.html">MotionChartID317037c12dd2</a> &#8226; <a href="https://github.com/mages/googleVis">googleVis-0.6.3</a></span><br /> 
+<!-- htmlFooter -->
+<span> 
+  R version 3.5.1 (2018-07-02) 
+  &#8226; <a href="https://developers.google.com/terms/">Google Terms of Use</a> &#8226; <a href="https://google-developers.appspot.com/chart/interactive/docs/gallery/motionchart">Documentation and Data Policy</a>
+</span></div>
+</body>
+</html>
