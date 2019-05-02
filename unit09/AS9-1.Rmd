@@ -1,0 +1,175 @@
+---
+title: UNIT09D 案例：航空公司的市場區隔
+date: "`r Sys.time()`"
+output: 
+  html_document:
+    highlight: pygments
+    theme: flatly
+    css: style.css
+---
+
+
+[第四組] `M074020010 陳韻卉` `M074020036 張哲瑋` `M074020043 巢正修` `B046060005陳雅靜` `B046060016 戴婉錡` `B046060037	陳柏愷`
+
+
+```{r results='hide', message=FALSE, warning=FALSE, echo=F}
+# 這些程式碼設定網頁的格式，並安裝、載入一些基本的套件，請大家不要去改動<br>
+rm(list=ls(all=T))
+knitr::opts_chunk$set(comment = NA)
+knitr::opts_knit$set(global.par = TRUE)
+par(cex=0.8)
+options(scipen=20, digits=5, width=80)
+if(!require(pacman)) install.packages("pacman")
+```
+<br>
+
+<p class="wwl">
+<span style="font-size:24px">`r "\U1F4A1"` 學習重點：</span><br>
+&emsp; ■ 集群分析的基本觀念<br>
+&emsp; ■ 距離矩陣：Distance Matrix<br>
+&emsp; ■ 層級式集群分析：Hierarchical Cluster Analysis<br>
+&emsp; ■ 樹狀圖(Dendrogram)的判讀<br>
+&emsp; ■ 依據樹狀圖決定要分多少群<br>
+&emsp; ■ 以群組平均值檢視各族群的屬性<br>
+</p class="wwl">
+
+<hr>
+
+```{r results='hide', message=FALSE, warning=FALSE}
+pacman::p_load(dplyr, ggplot2)
+```
+<br>
+
+### 【A】航空公司顧客資料集
+
+```{r}
+A = read.csv('data/AirlinesCluster.csv')
+summary(A)
+```
+
++ Balance: 可用里程數
++ QualMiles: 可用高等里程數
++ BonusMiles: 過去12個月非飛行里程數
++ BonusTrans: 過去12個月非飛行交易次數
++ FlightMiles: 過去12個月飛行里程數
++ FlightTrans: 過去12個月飛行交易次數
++ DaysSinceEnroll: 會員年資 (天)
+
+
+<br><br>
+
+### 【B】資料常態化
+
+<span style="font-size:24px">`r "\U1F5FF"`</span>
+為甚麼要做資料常態化？<br>
+避免數值太分散，將他常態化成平均為0、標準差為1能使在距離計算上更容易，圖形的呈現也更直覺易懂<br>
+```{r}
+colMeans(A) %>% sort
+```
+
+```{r}
+AN = scale(A) %>% data.frame
+```
+
+```{r}
+sapply(AN, mean)
+```
+
+```{r}
+sapply(AN, sd)
+```
+
+<br><br>
+
+### 【C】層級式集群分析 Hirarchical Clustering  
+
+1.距離矩陣
+```{r}
+d = dist(AN, method="euclidean")
+```
+
+2.層級式集群分析
+```{r}
+hc = hclust(d, method='ward.D')
+```
+
+3.畫出樹狀圖
+```{r}
+plot(hc)
+```
+<br>
+<span style="font-size:24px">`r "\U1F5FF"`</span>
+如何從樹狀圖決定群數？<br>
+一個橫線是一群，橫線與橫線間的距離就是群間距離，要選擇群間距離大的狀況來決定群數。<br>
+4.分割群組 
+```{r}
+kg = cutree(hc, k=5)
+table(kg)
+```
+
+<br><br>
+
+### 【D】觀察群組特性
+
+```{r}
+sapply(split(A,kg), colMeans) %>% round(2) 
+```
+
+```{r}
+par(cex=0.8)
+split(AN,kg) %>% sapply(colMeans) %>% barplot(beside=T,col=rainbow(7))
+legend('topright',legend=colnames(A),fill=rainbow(7))
+```
+
++ Balance: 可用里程數(可以換的)
++ QualMiles: 可用高等里程數(可以換得 更好的)
++ BonusMiles: 過去12個月非飛行里程數
++ BonusTrans: 過去12個月非飛行交易次數
++ FlightMiles: 過去12個月飛行里程數
++ FlightTrans: 過去12個月飛行交易次數
++ DaysSinceEnroll: 會員年資 (天)
+
+
+<br><br>
+
+<p class="qiz">
+<span style="font-size:24px">`r "\U1F5FF"` 討論問題：</span><br>
+&emsp; ■ 請你們為這五個族群各起一個名稱<br>
+
++ 1.沉睡顧客：已經註冊很久的老顧客，但是都很少搭乘，也沒有關心相關的福利贈送活動。
++ 2.商務旅客(VIP)：雖然剛加入沒多久，但是實際飛行里程數、交易數都是最高的，且拿到最高的高等里程數，代表其消費力很好。
++ 3.老潛在顧客：雖然註冊已久、實際飛行不活躍，但時常關心相關的福利贈送活動，並已累積相當數量的紅利，未來很有可能會消費。
++ 4.新潛在顧客：剛註冊沒多久，且拿到福利，有可能是被註冊時搭配的活動吸引而來，未來有可能會使用這些福利消費。
++ 5.路人顧客:只是來註冊看看，但是並沒有被我們的活動吸引，且沒有什麼實際消費，可能只是一開始被吸引，為了撿便宜或其他目的才辦會員。
+
+
+&emsp; ■ 請你們為這五個族群各設計一個行銷策略<br>
+
++ 1.沉睡顧客：以低成本的行銷策略（例如發email）告訴此群顧客公司最近有哪些活動是專屬於高年資顧客的。
++ 2.商務旅客(VIP)：是我們的主力顧客，必須盡力留住他們。他們是一群消費能力高的商務旅客，因此可以與飯店結合推出機加酒的配套措施。生日會享有特別的福利，或是家人享有機票折扣，以維持此類顧客對我們的忠誠度。
++ 3.老潛在顧客：主動告知顧客有累積里程數可以換取飛行優惠，提高這群顧客的消費意願。
++ 4.新潛在顧客：是被註冊時的活動所吸引的新顧客，可以推出新顧客專屬的方案吸引他們首次消費（例如，推出首次飛行送行李箱或是熱門景點的飛行優惠組合）
++ 5.路人顧客: 是一群剛註冊，但是幾乎沒有後續動作的顧客，可以用低成本的行銷策略(如發email)，告訴他們公司最近的活動即可。
+
+&emsp; ■ 統計上最好的分群也是實務上最好的分群嗎<br>
+
+不是，因為分群沒有標準答案，而是要考慮兩者：<br>
+1.分群的標準：群間距離大，群內距離小。<br>
+2.根據資料集相關的專業知識，去判斷要分幾群才是最符合實際狀況。以上面的樹狀圖來看，從統計的角度分5群是不錯的結果，但是航空公司可能會認為顧客族群還可以分得更細。
+
+&emsp; ■ 除了考慮群間和群間距離之外，實務上的分群通常還需要考慮那些因數？<br>
+
+如上題答案，分群不只要考慮群間距離，也要考量到許多面向的因素，例如相關專業人員可能覺得消費者習慣可以再分更多種，或是有其他專業人員認為重要的因素。
+
+</p class="qiz">
+
+<br><br><br><hr>
+
+
+
+
+
+
+？
+
+
