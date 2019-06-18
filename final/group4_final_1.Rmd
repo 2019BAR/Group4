@@ -1,0 +1,762 @@
+---
+title: "1_PrepAndEDA"
+author: 卓雍然, 中山大學 管理學術研究中心
+date: "`r Sys.time()`"
+output:
+  html_document:
+    
+    highlight: pygments
+    theme: flatly
+    css: style.css
+---
+
+<br>
+
+### 資料準備流程
+
+<center>
+
+![Fig-1: Data Preparation](fig/preparation.jpg)
+
+</center>
+
+<hr>
+
+### Preparing The Predictors (X)
+```{r echo=T, message=F, cache=F, warning=F}
+rm(list=ls(all=TRUE))
+Sys.setlocale("LC_TIME","C")
+pacman::p_load(magrittr, readr, caTools, ggplot2, dplyr,corrplot,tidyr,mice,caret)
+#load("data/tf0.rdata")
+```
+
+##### The Demarcation Date
+Remove data after the demarcation date
+```{r}
+# feb01 = as.Date("2001-02-01")
+# Z0$avgAge = factor(Z0$age, levels=c("a20","a25","a30","a35","a40","a45","a50","a55","a60","a65","na"),labels=c(22,27,32,37,42,47,52,57,62,67,NA))
+# Z0$avgAge = as.numeric(as.character(Z0$avgAge))
+```
+
+```{r}
+# Z = subset(Z0, date < feb01)    # 618212 #training set
+```
+
+
+```{r}
+#summary(Z)
+```
+
+```{r}
+# Z$cat = as.factor(Z$cat)
+# Z$age = as.factor(Z$age)
+# Z$prod = as.factor(Z$prod)
+# Z$date = as.Date(Z$date)
+```
+
+
+##### Aggregate for the Transaction Records
+```{r}
+# X = group_by(Z, tid) %>% summarise( # 一筆是一則交易
+#   date = first(date),  # 交易日期
+#   cust = first(cust),  # 顧客 ID
+#   age = first(age),    # 顧客 年齡級別
+#   avgAge = first(avgAge),
+#   area = first(area),  # 顧客 居住區別
+#   items = n(),                # 交易項目(總)數 幾種商品
+#   pieces = sum(qty),          # 產品(總)件數 
+#   total = sum(price),         # 交易(總)金額
+#   gross = sum(price - cost)   # 毛利
+#   ) %>% data.frame  # 88387
+```
+
+
+```{r}
+# summary(X)
+```
+
+##### Check Quantile and Remove Outlier 
+```{r}
+#sapply(X[,6:9], quantile, prob=c(.999, .9995, .9999))
+```
+
+```{r}
+# X = subset(X, items<=64 & pieces<=98 & total<=11260) # 88387 -> 88295
+```
+
+##### Aggregate for Customer Records
+```{r}
+# d0 = max(X$date) + 1
+# # A: 一筆是一個顧客
+# A = X %>% mutate(
+#   days = as.integer(difftime(d0, date, units="days")) # 交易日期距離目前幾天
+#   ) %>% 
+#   group_by(cust) %>% summarise(
+#     r = min(days),      # recency
+#     s = max(days),      # seniority
+#     f = n(),            # frquency (假設一天一筆交易)
+#     m = mean(total),    # monetary 平均單筆交易金額
+#     rev = sum(total),   # total revenue contribution 總收益
+#     raw = sum(gross),   # total gross profit contribution 總利潤
+#     age = age[1],       # age group
+#     avgAge = avgAge[1],
+#     area = area[1],     # area code
+#     avgItems = mean(items), # 平均單筆交易買了幾種商品
+#     maxItems = max(items) #一筆交易最多買了幾種商品
+#   ) %>% data.frame      # 28584
+# nrow(A)
+```
+
+```{r}
+# A$age = as.factor(A$age)
+# A$area = as.factor(A$area)
+```
+
+
+```{r}
+# sum(is.na(A$avgAge))/nrow(A) # avgAge NA比例
+```
+
+```{r message=FALSE}
+# names(A)
+# NOT = c("age")
+# mice.data <- mice(A[,!names(A) %in% NOT],
+#                   m = 3,           # 產生三個被填補好的資料表
+#                   maxit = 50,      # max iteration
+#                   method = "pmm", 
+#                   seed = 188)      # set.seed()，令抽樣每次都一樣
+```
+
+
+```{r}
+#AC = complete(mice.data,1)
+```
+
+```{r}
+#save.image("./data/AC.RData")
+```
+
+```{r}
+load("./data/AC.RData")
+```
+
+
+```{r}
+Z0$avgAge <- NULL
+Z0 = merge(Z0,AC[,c("cust","avgAge")],by = "cust") #把補好的avgAge補回交易資料
+```
+
+
+```{r}
+sum(is.na(Z0$avgAge)) #沒有NA了
+```
+
+從補完的交易資料
+
+
+```{r}
+summary(Z0)
+```
+
+
+##### 商品分群
+
+```{r}
+P = Z0 %>% mutate(weeks = as.Date(cut(date,"weeks"))) %>% group_by(prod,weeks) %>% summarise(
+    totalQty = sum(qty), #總賣出數
+    totalRev = sum(price), #總營收
+    totalGross = sum(price) - sum(cost),#總利潤
+    unitPrice = first(price)/first(qty)
+)
+```
+
+
+```{r}
+quantile(P$totalGross,c(0,0.1,0.25,0.50,0.75,0.999,1))
+```
+
+
+```{r}
+summary(P$totalGross)
+```
+
+
+```{r}
+
+
+```
+
+```{r}
+
+Pweeks = subset(P,prod %in% c("4710085120697","4710085120680","4719090790017","4719090790000","4710011401135","4710011401128")) %>% as.data.frame()
+# plot( gvisMotionChart(
+#   Pweeks,idvar="prod",timevar="weeks",
+#   options=list(width=800, height=600) ))
+```
+
+
+
+將每個product算出的avgBuyerAge合併回商品交易資料
+```{r}
+#Z0 = merge(Z0,P[,c("prod","avgBuyerAge")],by="prod")
+```
+
+
+```{r}
+Z = subset(Z0, date < feb01)    # 618212 #training set
+```
+
+
+```{r}
+X = group_by(Z, tid) %>% summarise( # 一筆是一則交易
+  date = first(date),  # 交易日期
+  cust = first(cust),  # 顧客 ID
+  age = first(age),    # 顧客 年齡級別
+  avgAge = first(avgAge),
+  area = first(area),  # 顧客 居住區別
+  items = n(),                # 交易項目(總)數 幾種商品
+  pieces = sum(qty),          # 產品(總)件數
+  total = sum(price),         # 交易(總)金額
+  gross = sum(price - cost),   # 毛利
+  #avgBuyerAge = mean(avgBuyerAge)
+  ) %>% data.frame  # 88387
+```
+
+
+```{r}
+# summary(X)
+```
+
+##### Check Quantile and Remove Outlier 
+```{r}
+sapply(X[,c("items","pieces","total")], quantile, prob=c(.999, .9995, .9999))
+```
+
+```{r}
+ X = subset(X, items<=64 & pieces<=98 & total<=11260) # 88387 -> 88295
+```
+
+##### Aggregate for Customer Records
+```{r}
+d0 = max(X$date) + 1
+# A: 一筆是一個顧客
+A = X %>% mutate(
+  days = as.integer(difftime(d0, date, units="days")) # 交易日期距離目前幾天
+  ) %>%
+  group_by(cust) %>% summarise(
+    r = min(days),      # recency
+    s = max(days),      # seniority
+    f = n(),            # frquency (假設一天一筆交易)
+    m = mean(total),    # monetary 平均單筆交易金額
+    rev = sum(total),   # total revenue contribution 總收益
+    raw = sum(gross),   # total gross profit contribution 總利潤
+    age = age[1],       # age group
+    avgAge = avgAge[1],
+    area = area[1],     # area code
+    avgItems = mean(items), # 平均單筆交易買了幾種商品
+    maxItems = max(items), #一筆交易最多買了幾種商品
+    #avgProdAge = mean(avgBuyerAge),
+    #ageDiff = avgAge - avgProdAge #實際年齡-平均購買商品年齡屬性 , 越大表示越不服老,越小表示早熟
+  ) %>% data.frame      # 28584
+nrow(A)
+```
+
+```{r}
+A$age = as.factor(A$age)
+A$area = as.factor(A$area)
+```
+
+
+```{r}
+# Z = merge(Z,P[,c("prod","group")],by="prod")
+# Z$group = as.factor(Z$group)
+```
+
+
+```{r}
+# custGroup = Z %>% group_by(cust,group) %>% 
+#             summarise(
+#               totalQty = sum(qty)
+#             ) %>% spread(group,totalQty) %>% as.data.frame()
+# names(custGroup)[2:8] = paste0("group",c(1:7))
+# custGroup[is.na(custGroup)] = 0
+```
+
+```{r}
+#AC = merge(AC,custGroup,by="cust")
+```
+
+
+<br><br><hr>
+
+
+### Preparing the Target Variables (Y)
+
+##### Aggregate Feb's Transaction by Customer
+```{r}
+feb = filter(X0, date>= feb01) %>% group_by(cust) %>% # 2月交易資料
+  summarise(amount = sum(total))  # 16899 #amount是2月購買金額
+```
+
+##### The Target for Regression - `A$amount` 
+Simply a Left Joint
+```{r}
+A = merge(A, feb, by="cust", all.x=T)
+```
+
+##### The Target for Classification - `A$buy`
+```{r}
+A$buy = !is.na(A$amount) #2月有沒有交易金額=有沒有買
+```
+
+
+### EDA
+
+```{r}
+
+  
+catEDA = Z0 %>% mutate(weeks = as.Date(cut(date,"months"))) %>%
+          group_by(cat,weeks) %>%
+          summarise(
+            buyerNum = n(),
+            totalQty = sum(qty),
+            avgPrice = sum(price)/totalQty,
+            avgCost = sum(cost)/totalQty,
+            avgGross = avgPrice - avgCost
+        )  %>% arrange(cat,weeks)
+
+#只選那些在2月賣前20多的產品
+
+topCatFeb = catEDA %>% 
+          filter(weeks >= feb01) %>%
+          group_by(cat) %>% 
+          summarise(
+            febTotalbuyerNum = sum(buyerNum),
+            febTotalQty = sum(totalQty)
+          ) %>% arrange(febTotalbuyerNum) %>% 
+          top_n(30,febTotalbuyerNum)
+
+catEDA15 = catEDA %>% filter(cat %in% topCatFeb$cat) %>% as.data.frame()
+
+```
+
+```{r}
+catEDA[is.na(catEDA)] = NA
+```
+
+
+```{r}
+# library(googleVis)
+# plot( gvisMotionChart(
+#   as.data.frame(catEDA15),idvar="cat",timevar="weeks",
+#   options=list(width=800, height=600) ))
+```
+可以看到有些category的購買量在這四個月間大起大落
+
+
+```{r}
+```
+
+
+所有顧客在 2月銷售最佳category 的11-1月總購買數量(!! 製作變數的資料不能包含2月)
+```{r}
+CustCat = Z %>% 
+          group_by(cust,cat) %>% 
+          summarise(
+          total_qty = sum(qty)) %>% 
+          spread(cat,total_qty) #每個row是一個顧客 col是各種category的總購買數量
+CustCat[is.na(CustCat)] = 0
+```
+
+
+```{r}
+Prod = Z %>% group_by(prod) %>%
+          summarise(
+          total_tid = n_distinct(tid))%>% as.data.frame()
+```
+
+```{r}
+quantile(Prod$total_tid,c(0,0.25,0.50,0.75,1))
+```
+
+```{r}
+Prod = subset(Prod , total_tid >= 21)
+```
+
+
+```{r}
+ProdTrans = Z %>% filter(prod %in% Prod$prod) %>% 
+            group_by(prod,tid) %>% 
+            summarise(
+              total_qty = sum(qty)
+            ) %>% as.data.frame()
+            
+```
+
+
+
+```{r}
+
+CustProd = Z %>% 
+          #filter(date >= as.Date("2000-11-01") & date <= as.Date("2000-11-30")) %>% 
+          group_by(tid,prod) %>%
+          summarise(
+          total_qty = sum(qty)) %>% as.data.frame()
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+length(unique(Z$prod))
+```
+
+
+
+```{r}
+length(unique(Z$cust)) == nrow(CustCat)
+```
+
+```{r}
+CustCat[1:10,1:10]
+```
+
+在所有category的總購買數量中  我只選topCatFeb(2月賣最好的前15個category)
+
+
+```{r}
+# names.use =  names(CustCat)[names(CustCat) %in% topCatFeb$cat]
+# names.use = c("cust",names.use)
+# AC = merge(AC,CustCat[,names.use],by = "cust")
+```
+
+
+
+##### corrplot
+
+```{r}
+NOT = c("cust","amount","age","area")
+corrplot(cor(A[,!(names(A) %in% NOT)]))
+```
+f,rev,raw有共線性
+
+```{r}
+ggplot(A,aes(buy,rev))+geom_boxplot()+scale_y_log10()+theme(text = element_text(size=20))
+```
+
+
+
+
+發現四月沒有買的，大部分總支出金額 < 1000
+
+```{r}
+A$poor = A$rev < 1000
+```
+
+
+
+```{r}
+ggplot(A,aes(x = area,fill = factor(buy)))+
+  geom_bar(position = "dodge2")
+```
+
+
+
+```{r}
+A %>% group_by(area) %>% 
+  summarise( avgAge = mean(avgAge)) %>%
+  as.data.frame() %>% 
+  ggplot(aes(area,avgAge)) + geom_bar(stat = "identity")
+```
+
+各地區的顧客平均年齡是差不多的
+
+
+##### Summary of the Dataset
+```{r}
+summary(A)
+```
+
+
+
+##### The Association of Categorial Predictors
+```{r fig.height=3, fig.width=7.2}
+tapply(A$buy, A$avgAge, mean) %>% barplot
+abline(h = mean(A$buy), col='red')
+```
+
+```{r fig.height=3, fig.width=7.2}
+tapply(A$buy, A$area, mean) %>% barplot(las=2)
+abline(h = mean(A$buy), col='red')
+```
+
+##### Contest Dataset
+```{r}
+X = subset(X, cust %in% AC$cust & date < as.Date("2001-02-01"))
+Z = subset(Z, cust %in% AC$cust & date < as.Date("2001-02-01"))
+set.seed(2018); spl = sample.split(A$buy, SplitRatio=0.7)
+c(nrow(A), sum(spl), sum(!spl))
+```
+
+```{r fig.height=3, fig.width=7}
+cbind(A, spl) %>% filter(buy) %>% 
+  ggplot(aes(x=log(amount))) + geom_density(aes(fill=spl), alpha=0.5)
+```
+
+
+```{r}
+A2 = subset(A, buy) %>% mutate_at(c("m","rev","amount"), log10)
+n = nrow(A2)
+set.seed(2018); spl2 = 1:n %in% sample(1:n, round(0.7*n))
+c(nrow(A2), sum(spl2), sum(!spl2))
+```
+
+```{r fig.height=3, fig.width=7}
+cbind(A2, spl2) %>% 
+  ggplot(aes(x=amount)) + geom_density(aes(fill=spl2), alpha=0.5)
+```
+
+
+
+
+
+### 模型訓練與測試流程
+
+<center>
+
+![Fig-1: The First Model](fig/modeling.jpg)
+</center>
+
+<hr>
+
+### Loading & Preparing Data
+```{r echo=T, message=F, cache=F, warning=F}
+pacman::p_load(dplyr,ggplot2,caTools)
+#rm(list=ls(all=TRUE))
+Sys.setlocale("LC_TIME","C")
+#load("data/tf2.rdata")
+```
+
+##### Spliting for Classification 
+
+```{r}
+summary(A)
+```
+
+```{r}
+TR = subset(A, spl)
+TS = subset(A, !spl)
+```
+<br><hr>
+
+### Classification Model
+
+#### cart
+
+```{r}
+library(rpart)
+library(rpart.plot)
+NOT = c("cust","amount","age")
+cart1 = rpart(buy ~ ., TR[,!names(TR) %in% NOT], method='class')
+prp(cart1, cex=0.75) #4個分歧點
+```
+
+```{r}
+pred =  predict(cart1, TS)[,2] #只取出TRUE的機率
+cm = table(actual = TS$buy, predict = pred > 0.5); cm
+acc.ts = cm %>% {sum(diag(.))/sum(.)}; acc.ts          # 0.69998
+colAUC(pred, TS$buy)                                   # 0.7556
+```
+
+
+
+#### glm
+```{r}
+#glm1 = glm(buy ~ ., TR[,c(2:9, 11)], family=binomial())
+NOT = c("cust","amount","age","ageDiff")
+glm1 = glm(buy ~ ., TR[,!names(TR) %in% NOT], family=binomial()) 
+summary(glm1)
+
+```
+
+```{r}
+pred =  predict(glm1, TS, type="response")
+cm = table(actual = TS$buy, predict = pred > 0.5); cm
+acc.ts = cm %>% {sum(diag(.))/sum(.)}; acc.ts          # 0.69998
+colAUC(pred, TS$buy)                                   # 0.7556
+```
+
+
+```{r}
+confusionMatrix(factor(pred>0.5),factor(TS$buy),dnn = c("Prediction","Reference"))
+```
+
+
+<br><hr>
+
+### xgboost
+
+#### dummy variable
+
+```{r}
+
+# A_factor=sapply(AX, class)=='factor'
+# spl = sample.split(A$buy, SplitRatio=0.7)
+# #把是factor的X弄成dummy
+# XG=cbind(AX[,!A_factor],model.matrix.lm(~.-1,A[,A_factor],na.action='na.pass'))
+# TR = subset(XG,spl)
+# TS= subset(XG,!spl)
+```
+
+```{r}
+# library(xgboost)
+# 
+# DM=xgb.DMatrix(data=data.matrix(TR[,!names(TR) %in% NOT]),label=TR$buy)
+# 
+# xgb1=xgb.train(
+#   data=DM,nrounds = 160,verbose = 1,prediction=T,
+#   params = list(
+#     'objective'='multi:softprob',
+#     'eval_metric'='mlogloss',
+#     'num_class'=2
+#   )
+# )
+
+
+
+```
+
+predict
+
+```{r}
+
+# DM = xgb.DMatrix(data=data.matrix(TS[,!names(TS) %in% NOT]),label=TS$buy)
+# pred=predict(xgb1,DM)
+# 
+# pred = t(matrix(pred,2,length(pred)/2))
+# pred = max.col(pred) - 1 # 原本是1,2 = > 0,1
+# 
+# cm = table(actual = TS$buy, predict = pred); cm
+# acc.ts = cm %>% {sum(diag(.))/sum(.)}; acc.ts          # 0.69998
+# colAUC(pred, TS$buy)                                   # 0.7556
+```
+
+
+### Regression Model
+```{r}
+A2 = subset(A, A$buy) %>% mutate_at(c("m","rev","amount"), log10)
+TR2 = subset(A2, spl2)
+TS2 = subset(A2, !spl2)
+```
+
+```{r}
+NOT = c("cust","buy","age","ageDiff")
+lm1 = lm(amount ~ ., TR2[,!names(TR2) %in% NOT])
+summary(lm1)
+```
+
+```{r}
+r2.tr = summary(lm1)$r.sq
+SST = sum((TS2$amount - mean(TR2$amount))^ 2)
+pred = predict(lm1, TS2)
+SSE = sum((predict(lm1, TS2) -  TS2$amount)^2)
+r2.ts = 1 - (SSE/SST)
+c(r2.tr, r2.ts)
+```
+<br><hr>
+
+### Prediction
+
++ input : 12~2月的顧客資料 
++ model : 使用11~1月資料所建的模型
++ predict : 2月的資料
+
+```{r}
+X0 = group_by(Z0, tid) %>% summarise( # 一筆是一則交易
+  date = first(date),  # 交易日期
+  cust = first(cust),  # 顧客 ID
+  age = first(age),    # 顧客 年齡級別
+  avgAge = first(avgAge),
+  #avgBuyerAge = mean(avgBuyerAge),
+  area = first(area),  # 顧客 居住區別
+  items = n(),                # 交易項目(總)數 幾種商品
+  pieces = sum(qty),          # 產品(總)件數 
+  total = sum(price),         # 交易(總)金額
+  gross = sum(price - cost),  # 毛利
+  ) %>% data.frame  # 88387
+```
+
+
+
+```{r}
+#load("../unit15/data/tf0.rdata")
+d0 = max(X0$date) + 1
+B = X0 %>%
+  filter(date >= as.Date("2000-12-01")) %>%
+  mutate(days = as.integer(difftime(d0, date, units="days"))) %>% 
+  group_by(cust) %>% summarise(
+    r = min(days),      # recency
+    s = max(days),      # seniority
+    f = n(),            # frquency (假設一天一筆交易)
+    m = mean(total),    # monetary 平均單筆交易金額
+    rev = sum(total),   # total revenue contribution 總收益
+    raw = sum(gross),   # total gross profit contribution 總利潤
+    #age = age[1],       # age group
+    avgAge = avgAge[1],
+    area = area[1],     # area code
+    avgItems = mean(items), # 平均單筆交易買了幾種商品
+    maxItems = max(items), #一筆交易最多買了幾種商品
+    poor = rev < 1000,
+    #avgProdAge = mean(avgBuyerAge)
+  )  %>% data.frame      # 28584
+nrow(B)
+```
+
+```{r}
+#B = merge(B,custGroup,by="cust")
+```
+
+
+```{r}
+B$Buy = predict(glm1, B, type="response")
+```
+
+```{r}
+B2 = B %>% mutate_at(c("m","rev"), log10)
+B$Rev = 10^predict(lm1, B2)
+```
+
+
+```{r}
+quantile(B$Rev,c(0.1,0.25,0.75,0.90,0.99,1))
+B = subset(B,Rev < 338633)
+```
+
+
+```{r}
+hist(B$Rev)
+```
+
+
+```{r fig.height=2.4, fig.width=7.2}
+par(mfrow=c(1,2), cex=0.8)
+hist(B$Buy)
+hist(log(B$Rev,10))
+```
+
+
+```{r}
+save.image("./data/tf3.rdata")
+```
+
+
+<br><br><hr><br><br>
+
+
+
+
+<br><br><hr>
+
